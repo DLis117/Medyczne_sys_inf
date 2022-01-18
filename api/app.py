@@ -33,4 +33,4 @@ if __name__=="__main__":
     login_manager.login_view='login'
     login_manager.init_app(app)
     db.create_all(app=app)
-    app.run()
+    app.run(host='0.0.0.0')
