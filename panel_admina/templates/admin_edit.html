@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>doctor editing panel</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="ramka1">
+    <h1>EDYTUJ LEKARZA</h1>    
+    <form action="/add" method="post">
+        <input type="text" placeholder="imie" value="" name="name">
+        <input type="text" placeholder="nazwisko" value="" name="surname">
+        <input type="text" placeholder="login" value="" name="login">
+        <input type="password" placeholder="haslo" value="" name="password">
+        <input type="checkbox" name="spec1"> laryngolog
+        <input type="checkbox" name="spec2"> proktolog
+        <input type="checkbox" name="spec3"> dentysta
+        <input type="checkbox" name="spec4"> okulista
+        <input type="checkbox" name="spec5"> neurolog
+        <input type="checkbox" name="spec6"> gastrolog
+        <input type="submit" value="dodaj lekarza">
+    </form>
+    </div>
+    <a href=admin_chose.html>&#8592;</a>
+    
+    
+    <style>
+    *
+    {
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+    body
+    {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+    input
+    {
+        height: 8vh;
+        width: 20vw;
+        border-radius: 10px;
+        background-color: lightgray;
+        margin-bottom: 2vh;
+    }
+    input[type="checkbox"]
+    {
+         height: 2vh;
+         width: 5vw;
+    }
+    select
+    {
+        width: 20vw;
+        height: 5vh;
+        background: lightgray;
+        border-radius: 10px;
+        margin-bottom: 2vh;
+    }
+    option
+    {
+        font-size: 20px;
+    }
+    .ramka1,.ramka2,.ramka3
+    {
+        display: inline-block;
+        width: 20%;
+        float: left;
+        margin-left: 5%;
+    }
+    h1
+    {
+        width: 50%;
+        display: inline-block;
+        margin: 10vh 10%;
+    }
+    a
+    {
+        position: absolute;
+        bottom: 5%;
+        left: 1%;
+        font-size: 250%;
+    }
+    </style>
+</body>
+</html>

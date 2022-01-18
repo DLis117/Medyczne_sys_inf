@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>doctor editing panel</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% block content%}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+    {%endblock%}
+    <h1>PANEL ADMINISTRACYJNY DODAWANIA/USUWANIA/EDYTOWANIA LEKARZY</h1>
+    <div class="ramka">
+    <form action="/logging" method="post">
+        <input type="text" placeholder="podaj login" value="" name="login">
+        <input type="password" placeholder="podaj haslo" value="" name="password">
+        <input type="submit" value="zaloguj">
+    </form>
+    </div>
+    
+    
+    <style>
+    *
+    {
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+        .flashes
+        {
+            font-size: 30px;
+            
+        }
+    body
+    {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+    input
+    {
+        height: 8vh;
+        width: 20vw;
+        border-radius: 10px;
+        background-color: lightgray;
+        margin-bottom: 2vh;
+    }
+    .ramka
+    {
+        height: 10vh;
+        width: 20vw;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%,-200%);
+
+    }
+    h1
+    {
+        display: inline-block;
+        margin: 10vh 10%;
+    }
+    </style>
+</body>
+</html>
