@@ -37,7 +37,7 @@ class Pacjenci(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     imie=db.Column(db.String(25))
     nazwisko=db.Column(db.String(50))
-    data_ur=db.Column(db.DateTime)
+    data_ur=db.Column(db.String(50))
     adres=db.Column(db.String(200))
     pesel=db.Column(db.Integer)
     email=db.Column(db.String(100))
@@ -70,7 +70,7 @@ class Wizyty(db.Model):
     id_lekarza = db.Column(db.Integer, db.ForeignKey(Lekarze.id))
     id_pacjenta = db.Column(db.Integer, db.ForeignKey(Pacjenci.id))
     godzina=db.Column(db.String(150))
-    data=db.Column(db.DateTime)
+    data=db.Column(db.String(50))
     sala=db.Column(db.Integer)
 
     def __init__(self, nazwa, id_lekarza,id_pacjenta,godzina,data,sala):
