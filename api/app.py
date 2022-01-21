@@ -2,6 +2,8 @@ from flask import Flask, render_template,request,redirect,url_for,flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager,login_user, current_user,logout_user,login_required
 from werkzeug.security import generate_password_hash, check_password_hash
+from forms import RegistrationForm
+
 
 app=Flask(__name__)
 db=SQLAlchemy()
@@ -25,6 +27,11 @@ def load_user(user_id):
 @app.route("/")
 def main():
     return ("hello flask!")
+
+@app.route("/register")
+def register():
+    form = RegistrationForm()
+    return render_template('register.html', form=form)
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
