@@ -14,9 +14,8 @@
         <input type="text" placeholder="imie" value="" name="name">
         <input type="text" placeholder="nazwisko" value="" name="surname">
         <input type="text" placeholder="adres" value="" name="address">
-        <input type="text" placeholder="email" value="" name="email">
-        <input type="text" placeholder="telefon" value="" name="phone">
-        <input type="text" placeholder="nazwa uzytkownika" value="" name="username">
+        <input type="email" placeholder="email" value="" name="email">
+        <input type="number" placeholder="telefon" value="" name="phone">
         <input type="password" placeholder="haslo" value="" name="password">
         <input type="checkbox" name="spec1"> laryngolog
         <input type="checkbox" name="spec2"> proktolog
@@ -30,10 +29,11 @@
     <div class="ramka2">
     <h1>USUN LEKARZA</h1>
     <form action="/delete" method="post">
-        <select name="lekarz">
-            <option class="opcja">id=1</option>
-            <option class="opcja">id=2</option>
-            <option class="opcja">id=3</option>
+        <select name="selected">
+            {% for record in baza%}
+                <option class="opcja" value="{{record}}">{{record}}</option>
+            {%endfor%}
+<!--            <option class="opcja">id=1</option>-->
         <input type="submit" value="usun lekarza">
         </select>
         
@@ -42,18 +42,19 @@
     <div class="ramka3">
     <h1>EDYTUJ LEKARZA</h1>
     <form action="/edit" method="post">
-        <select name="lekarz">
-            <option class="opcja">id=1</option>
-            <option class="opcja">id=2</option>
-            <option class="opcja">id=3</option>
+        <select name="selected">
+            {% for record in baza%}
+                <option class="opcja" value="{{record}}">{{record}}</option>
+            {%endfor%}
         <input type="submit" value="edytuj lekarza">
         </select>
         
     </form>
-        
-    <button><a class="wyloguj" href="/logout">wyloguj</a></button>
+    
+    <form action="/logout" method="post">
+        <input class="wyloguj" type="submit" value="wyloguj"> 
+    </form>
     </div>
-    <a href="/">&#8592;</a>
     
     
     <style>
@@ -113,13 +114,6 @@
         width: 50%;
         display: inline-block;
         margin: 10vh 10%;
-    }
-    a
-    {
-        position: absolute;
-        bottom: 5%;
-        left: 1%;
-        font-size: 250%;
     }
     </style>
 </body>

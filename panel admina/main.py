@@ -22,32 +22,29 @@ class Lekarze(db.Model):
     nazwisko=db.Column(db.String(50))
     adres=db.Column(db.String(200))
     email=db.Column(db.String(100))
-    telefon=db.Column(db.String(50))
-    username=db.Column(db.String(50))
+    telefon=db.Column(db.Integer)#telefon - integer, usuniety username!
     password=db.Column(db.String(150))
 
-    def __init__(self, imie,nazwisko,adres,email,telefon,username,password):
+    def __init__(self, imie,nazwisko,adres,email,telefon,password):
         self.imie = imie
         self.nazwisko=nazwisko
         self.adres=adres
         self.email=email
         self.telefon=telefon
-        self.username=username
         self.password=password
 
 class Pacjenci(db.Model):
     id=db.Column(db.Integer, primary_key=True)
     imie=db.Column(db.String(25))
     nazwisko=db.Column(db.String(50))
-    data_ur=db.Column(db.String(50))
+    data_ur=db.Column(db.DateTime)
     adres=db.Column(db.String(200))
-    pesel=db.Column(db.String(11))
+    pesel=db.Column(db.Integer)
     email=db.Column(db.String(100))
-    telefon=db.Column(db.String(50))
-    username=db.Column(db.String(50))
+    telefon=db.Column(db.Integer)
     password=db.Column(db.String(150))
 
-    def __init__(self, imie,nazwisko,data_ur,adres,pesel,email,telefon,username,password):
+    def __init__(self, imie,nazwisko,data_ur,adres,pesel,email,telefon,password):
         self.imie = imie
         self.nazwisko=nazwisko
         self.data_ur=data_ur
@@ -55,7 +52,6 @@ class Pacjenci(db.Model):
         self.pesel=pesel
         self.email=email
         self.telefon=telefon
-        self.username=username
         self.password=password
 
 class Specjalizacje(db.Model):
@@ -74,7 +70,7 @@ class Wizyty(db.Model):
     id_lekarza = db.Column(db.Integer, db.ForeignKey(Lekarze.id))
     id_pacjenta = db.Column(db.Integer, db.ForeignKey(Pacjenci.id))
     godzina=db.Column(db.String(150))
-    data=db.Column(db.String(150))
+    data=db.Column(db.DateTime)
     sala=db.Column(db.Integer)
 
     def __init__(self, nazwa, id_lekarza,id_pacjenta,godzina,data,sala):
@@ -122,12 +118,11 @@ def add():
         adres = request.form.get('address')
         email = request.form.get('email')
         telefon = request.form.get('phone')
-        username = request.form.get('username')
         password = request.form.get('password')
 
         password_h=generate_password_hash(password)
 
-        Lekarz=Lekarze(imie,nazwisko,adres,email,telefon,username,password_h)
+        Lekarz=Lekarze(imie,nazwisko,adres,email,telefon,password_h)
         db.session.add(Lekarz)
         db.session.commit()
 
@@ -200,7 +195,6 @@ def edit():
         baza.append(gr.adres)
         baza.append(gr.email)
         baza.append(gr.telefon)
-        baza.append(gr.username)
         baza.append(gr.password)
 
 
@@ -282,7 +276,6 @@ def edited():
         adres = request.form.get('address')
         email = request.form.get('email')
         telefon = request.form.get('phone')
-        username = request.form.get('username')
         password = request.form.get('password')
 
         spec1 = request.form.get('spec1')  # on/None
@@ -322,7 +315,6 @@ def edited():
         gr.nazwisko=nazwisko
         gr.adres=adres
         gr.telefon=telefon
-        gr.username=username
         gr.password=password
         gr.email=email
         db.session.commit()
