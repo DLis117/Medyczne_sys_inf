@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>doctor editing panel</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="ramka1">
+    <h1>EDYTUJ LEKARZA</h1>    
+    <form action="/admin_doctor_edited" method="post">
+        <input class="hidden" type="text" placeholder="id" value="{{baza[0]}}" name="id">
+        <input type="text" placeholder="imie" value="{{baza[1]}}" name="name">
+        <input type="text" placeholder="nazwisko" value="{{baza[2]}}" name="surname">
+        <input type="datetime-local" value={{baza[3]}} name="birthdate">
+        <input type="text" placeholder="adres" value="{{baza[4]}}" name="address">
+        <input type="number" placeholder="pesel" value="{{baza[5]}}" name="pesel">
+        <input type="email" placeholder="email" value="{{baza[6]}}" name="email">
+        <input type="text" placeholder="telefon" value="{{baza[7]}}" name="phone_number">
+        <input type="password" placeholder="haslo" value="{{baza[8]}}" name="password">
+        <input type="text" placeholder="class_type" value="{{baza[9]}}" name="class_type">
+        <input type="text" placeholder="jwt_token" value="{{baza[10]}}" name="jwt_token">
+        <input type="number" placeholder="account_confirmed" value={{baza[11]}} name="account_confirmed">
+        <input type="checkbox" name="spec1" {{baza[12]}}> laryngolog
+        <input type="checkbox" name="spec2" {{baza[13]}}> proktolog
+        <input type="checkbox" name="spec3" {{baza[14]}}> dentysta
+        <input type="checkbox" name="spec4" {{baza[15]}}> okulista
+        <input type="checkbox" name="spec5" {{baza[16]}}> neurolog
+        <input type="checkbox" name="spec6" {{baza[17]}}> gastrolog
+        <input type="submit" value="edytuj lekarza">
+    </form>
+    </div>
+    <a href='/admin_back'>&#8592;</a>
+    
+    
+    <style>
+    *
+    {
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+    body
+    {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+    input
+    {
+        height: 5vh;
+        width: 20vw;
+        border-radius: 10px;
+        background-color: lightgray;
+        margin-bottom: 1vh;
+    }
+    input[type="checkbox"]
+    {
+         height: 2vh;
+         width: 5vw;
+    }
+    select
+    {
+        width: 20vw;
+        height: 5vh;
+        background: lightgray;
+        border-radius: 10px;
+        margin-bottom: 2vh;
+    }
+    option
+    {
+        font-size: 20px;
+    }
+    .ramka1
+    {
+        display: inline-block;
+        width: 20%;
+        float: left;
+        margin-left: 5%;
+    }
+    h1
+    {
+        width: 100%;
+        display: inline-block;
+        margin: 1vh 10%;
+    }
+    a
+    {
+        position: absolute;
+        bottom: 5%;
+        left: 1%;
+        font-size: 250%;
+    }
+    </style>
+</body>
+</html>

@@ -9,13 +9,15 @@
 <body>
     
     <div class="ramka1">
-    <h1>DODAJ LEKARZA</h1>    
-    <form action="/add" method="post">
+    <h1 class="dodajlekarza">DODAJ LEKARZA</h1>    
+    <form action="/admin_add_doctor" method="post">
         <input type="text" placeholder="imie" value="" name="name">
         <input type="text" placeholder="nazwisko" value="" name="surname">
+        <input type="datetime-local" value="" name="birthdate">
         <input type="text" placeholder="adres" value="" name="address">
+        <input type="number" placeholder="pesel" value="" name="pesel">
         <input type="email" placeholder="email" value="" name="email">
-        <input type="number" placeholder="telefon" value="" name="phone">
+        <input type="text" placeholder="telefon" value="" name="phone_number">
         <input type="password" placeholder="haslo" value="" name="password">
         <input type="checkbox" name="spec1"> laryngolog
         <input type="checkbox" name="spec2"> proktolog
@@ -27,34 +29,70 @@
     </form>
     </div>
     <div class="ramka2">
-    <h1>USUN LEKARZA</h1>
-    <form action="/delete" method="post">
-        <select name="selected">
-            {% for record in baza%}
-                <option class="opcja" value="{{record}}">{{record}}</option>
-            {%endfor%}
-<!--            <option class="opcja">id=1</option>-->
-        <input type="submit" value="usun lekarza">
-        </select>
-        
-    </form>
-    </div>
-    <div class="ramka3">
     <h1>EDYTUJ LEKARZA</h1>
-    <form action="/edit" method="post">
+    <form action="/admin_edit_doctor" method="post">
         <select name="selected">
-            {% for record in baza%}
+            {% for record in baza[2]%}
                 <option class="opcja" value="{{record}}">{{record}}</option>
             {%endfor%}
         <input type="submit" value="edytuj lekarza">
         </select>
         
     </form>
+    </div>
     
-    <form action="/logout" method="post">
-        <input class="wyloguj" type="submit" value="wyloguj"> 
+    <div class="ramka3">
+    <h1>EDYTUJ PACJENTA</h1>
+    <form action="/admin_edit_patient" method="post">
+        <select name="selected">
+            {% for record in baza[1]%}
+                <option class="opcja" value="{{record}}">{{record}}</option>
+            {%endfor%}
+        <input type="submit" value="edytuj pacjenta">
+        </select>
+        
     </form>
     </div>
+    <h1 class="verifyh1">ZWERYFIKUJ PACJENTOW</h1>
+    <div class="ramka4">
+        
+        {% for record in baza[0]%}
+        
+        <div class="ramka4form">
+            <p>{{record.id}} {{record.name}} {{record.surname}} {{record.pesel}} {{record.email}} </p>
+            <div class=accept_or_deny>
+                <form action="/admin_verify_accept" method="post">
+                    <input type="hidden" value="{{record.id}}" name="id">
+                    <input class="accept" type="submit" value="&#10004;">
+                </form>
+                <form action="/admin_verify_deny" method="post">
+                    <input type="hidden" value="{{record.id}}" name="id">
+                    <input class="deny" type="submit" value="&#x2715;">
+                </form>
+            </div>
+        </div>
+        
+        {%endfor%}
+        
+        
+        
+<!--
+    <form action="/admin_verify" method="post">
+        <select name="selected">
+            {% for record in baza[0]%}
+                <option class="opcja" value="{{record}}">{{record}}</option>
+            {%endfor%}
+        <input type="submit" value="edytuj lekarza">
+        </select>
+        
+    </form>
+-->
+    </div>
+
+    
+    <form action="/admin_logout" method="post">
+        <input class="wyloguj" type="submit" value="wyloguj"> 
+    </form>
     
     
     <style>
@@ -70,11 +108,34 @@
         width: 100vw;
         overflow: hidden;
     }
+    .accept_or_deny
+    {
+        float: right;
+        margin-right: 1%;
+        width: 5vw;
+        margin-top: -1.5%;
+        
+    }
+    .accept,.deny
+    {
+        background: lightgray;
+        width: 2vw;
+        height: 4vh;
+        border-radius: 5px;
+    }
+        .accept
+        {
+            float: left;
+        }
+        .deny
+        {
+            float: right;
+        }
     .wyloguj
     {
         font-size: 20px;
         position: absolute;
-        left: 80%;
+        left: 78%;
         top: 10%;
     }
     input
@@ -102,12 +163,32 @@
     {
         font-size: 20px;
     }
-    .ramka1,.ramka2,.ramka3
+    .ramka1,.ramka2,.ramka3,.ramka4
     {
         display: inline-block;
         width: 20%;
         float: left;
         margin-left: 5%;
+    }
+    .ramka4
+    {
+        height: 45vh;
+        width: 66.1vw;
+        background: lightgray;
+        position: absolute;
+        top: 50%;
+        left: 25%;
+        border-radius: 20px; 
+        z-index: 1;
+        overflow-y: scroll;
+    }
+    .verifyh1
+    {
+        position: absolute;
+        top: 35vh;
+        left: 20vw;
+        font-size: 30px;
+        z-index: 2;
     }
     h1
     {
@@ -115,6 +196,20 @@
         display: inline-block;
         margin: 10vh 10%;
     }
+    .ramka4form
+    {
+        z-index: 3;
+        height: 5vh;
+        width: 65vw;
+        background: gray;
+        position: relative;
+        border-radius: 10px;
+        margin-bottom: 1vh;
+    }
+        .dodajlekarza
+        {
+            margin-bottom: 10px;
+        }
     </style>
 </body>
 </html>

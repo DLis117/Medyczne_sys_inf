@@ -1,0 +1,4 @@
+email: admin@admin.admin
+haslo: admin123
+
+pbkdf2:sha256:260000$r1uK1OHGqfchpxjm$9a51aa588c554deb6c8a994a8189b301dcb7500acfcbeeb6908f392cd25c3ae0
