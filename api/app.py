@@ -1,13 +1,19 @@
+from crypt import methods
 from flask import Flask, render_template,request,redirect,url_for,flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager,login_user, current_user,logout_user,login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import RegistrationForm
+from forms import RegistrationForm, LoginForm
 
 
 app=Flask(__name__)
 db=SQLAlchemy()
 login_manager=LoginManager()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class User(UserMixin,db.Model):
     id=db.Column(db.Integer, primary_key=True)
@@ -89,8 +95,14 @@ def load_user(user_id):
 
 
 @app.route("/")
+@app.route("/home")
 def main():
     return render_template('home.html')
+
+# @app.route("/visits")
+# @login_required
+# def visits():
+#     return render_template('visits.html')
 
 @app.route("/register")
 def register():
@@ -134,9 +146,20 @@ def trytoregister():
         Pacjent = Pacjenci(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h)
         db.session.add(Pacjent)
         db.session.commit()
-        flash("konto utworzone pomyslnie!")
+        flash("Konto utworzone pomyślnie!")
         return render_template('home.html')
 
+@app.route('/login', methods=['GET','POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = Pacjenci.query.filter_by(email=form.email.data).first()
+        if user and check_password_hash(user.password, form.password.data):
+            #login_user(user, remember=form.remember.data)
+            return redirect(url_for('main'))
+        else:
+            flash('Logowanie nieudane, sprawdź email i hasło', 'danger')
+    return render_template('login.html', form=form)
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
@@ -145,4 +168,4 @@ if __name__=="__main__":
     login_manager.login_view='login'
     login_manager.init_app(app)
     db.create_all(app=app)
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=True)

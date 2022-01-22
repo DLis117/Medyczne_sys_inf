@@ -2,3 +2,5 @@ typing
 Flask
 Flask-SQLAlchemy==2.5.1
 flask-login
+flask-wtf==0.14.3
+email_validator

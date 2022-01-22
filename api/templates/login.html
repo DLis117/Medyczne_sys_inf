@@ -1,4 +1,47 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h1>Logowanie</h1>
+
+<!--adding flash message-->
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+  <ul class="flashes">
+  {% for message in messages %}
+    <li>{{ message }}</li>
+  {% endfor %}
+  </ul>
+{% endif %}
+{% endwith %}
+
+  <div class="content-section">
+      <form method="POST" action=''>
+          {{form.hidden_tag()}}
+          <fieldset class="form-group">
+              <legend class="border-bottom mb-4">Logowanie</legend>
+              
+              <div class="form-group">
+                  {{ form.email.label(class = "form=control-label")}}
+                  {{ form.email(class = "form=control-label from-control-lg")}}
+              </div>
+              <div class="form-group">
+                  {{ form.password.label(class = "form=control-label")}}
+                  {{ form.password(class = "form=control-label from-control-lg")}}
+              </div>
+              <div class="form-check form-switch">
+                  {{ form.remember(class = "form-check-input") }}
+                  {{ form.remember.label(class="form-check-label") }}
+              </div>
+          </fieldset>
+          <div class="form-group">
+              {{ form.submit(class="btn btn-outline-info")}}
+          </div>
+          <small class="text-muted ml-2">
+              <a href="#">Resetuj hasło</a> 
+          </small>
+      </form>
+      <div class="border-top pt-3">
+          <small class="text-muted">
+              Nie masz konta? <a class="ml-2" href="{{ url_for('register') }}">Zarejestruj się teraz</a>
+          </small>
+      </div>
+  </div>
 {% endblock content %}
