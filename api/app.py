@@ -1,15 +1,17 @@
 from crypt import methods
-from flask import Flask, render_template,request,redirect,url_for,flash
+from flask import Flask, render_template,request,redirect,url_for,flash, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin, LoginManager,login_user, current_user,logout_user,login_required
+from flask_login import UserMixin, LoginManager,login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import RegistrationForm, LoginForm
+from forms import RegistrationForm, LoginForm,VisitForm
 from datetime import datetime
 #from wtforms.fields.html5 import DateField
 
 app=Flask(__name__)
 db=SQLAlchemy()
 login_manager=LoginManager()
+login_manager.login_view = 'login'
+login_manager.login_message = 'Musisz być zalogowany, by zobaczyć tę stronę.'
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -19,7 +21,7 @@ class User(UserMixin,db.Model):
     id=db.Column(db.Integer, primary_key=True)
     name=db.Column(db.String(25))
     surname=db.Column(db.String(50))
-    birthdate=db.Column(db.DateTime)
+    birthdate=db.Column(db.Date)
     address=db.Column(db.String(100))
     pesel=db.Column(db.Integer)
     email=db.Column(db.String(100))
@@ -42,6 +44,9 @@ class User(UserMixin,db.Model):
         self.jwt_token=jwt_token
         self.account_confirmed=account_confirmed
 
+    def __str__(self):
+        return self.name + ' ' + self.surname
+
 class Specializations(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name=db.Column(db.String(150))
@@ -50,6 +55,9 @@ class Specializations(db.Model):
     def __init__(self, name, doctor_id):
         self.name=name
         self.doctor_id=doctor_id
+    
+    def __str__(self):
+        return self.name
 
 
 class Visits(db.Model):
@@ -77,13 +85,12 @@ def load_user(user_id):
 def main():
     return render_template('home.html')
 
-# @app.route("/visits")
-# @login_required
-# def visits():
-#     return render_template('visits.html')
+
 
 @app.route("/register")
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main'))
     form = RegistrationForm()
     return render_template('register.html', form=form)
 
@@ -94,8 +101,8 @@ def trytoregister():
         surname = request.form.get('surname')
         date_of_birth=request.form.get('date_of_birth')
         birthdate=date_of_birth.replace("T"," ")
-        birthdate=birthdate+":00"
-        date_of_birth = datetime.strptime(birthdate, '%Y-%m-%d %H:%M:%S')
+        #birthdate=birthdate+":00"
+        date_of_birth = datetime.strptime(birthdate, '%d.%m.%Y')
         adress  = request.form.get('adress')
         pesel = request.form.get('pesel')#unique
         email = request.form.get('email')#unique
@@ -132,15 +139,37 @@ def trytoregister():
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-     form = LoginForm()
-     if form.validate_on_submit():
+    if current_user.is_authenticated:
+        return redirect(url_for('main'))
+    form = LoginForm()
+    if form.validate_on_submit():
          user = User.query.filter_by(email=form.email.data).first()
          if user and check_password_hash(user.password, form.password.data):
              login_user(user, remember=form.remember.data)
-             return redirect(url_for('main'))
+             next_page = request.args.get('next')
+             return redirect(next_page) if next_page else redirect(url_for('main'))
          else:
              flash('Logowanie nieudane, sprawdź email i hasło', 'danger')
-     return render_template('login.html', form=form)
+    return render_template('login.html', form=form)
+
+@app.route('/logut')
+def logout():
+    logout_user()
+    return redirect(url_for('main'))
+
+@app.route('/account')
+@login_required
+def account():
+    return render_template('account.html')
+
+@app.route("/visits", methods=['GET', 'POST'])
+@login_required
+def new_visit():
+    form = VisitForm()
+    if form.validate_on_submit():
+        flash('Wizyta została umówiona!')
+        return redirect(url_for('main'))
+    return render_template('visits.html', form=form)
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
