@@ -1,9 +1,9 @@
-# from crypt import methods
+#from crypt import methods
 from flask import Flask, render_template,request,redirect,url_for,flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager,login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import RegistrationForm, LoginForm,VisitForm
+from forms import RegistrationForm, LoginForm,VisitForm, DeleteUserForm
 from datetime import datetime
 #from wtforms.fields.html5 import DateField
 
@@ -29,7 +29,7 @@ class User(UserMixin,db.Model):
     password=db.Column(db.String(150))
     class_type=db.Column(db.Integer)                #domyslnie 3 a potem admin zmienia : 0-pacjent 1-lekarz 2-admin
     jwt_token=db.Column(db.String(200))
-    account_confirmed=db.Column(db.Integer)
+    account_confirmed=db.Column(db.Boolean)
 
     def __init__(self, name, surname,birthdate,address,pesel,email,phone_number,password,class_type,jwt_token,account_confirmed):
         self.name = name
@@ -67,15 +67,13 @@ class Visits(db.Model):
     date_and_time=db.Column(db.String(150))
     room=db.Column(db.Integer)
     note = db.Column(db.String(150))
-    visit_confirmed=db.Column(db.Integer)
 
-    def __init__(self, doctor_id, patient_id,date_and_time,room,note,visit_confirmed):
+    def __init__(self, doctor_id, patient_id,date_and_time,room,note):
         self.doctor_id=doctor_id
         self.patient_id=patient_id
         self.date_and_time=date_and_time
         self.room=room
         self.note=note
-        self.visit_confirmed=visit_confirmed
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -101,7 +99,9 @@ def trytoregister():
     if (request.method == 'POST'):
         name = request.form.get('name')
         surname = request.form.get('surname')
-        birthdate=request.form.get('date_of_birth')
+        date_of_birth=request.form.get('date_of_birth')
+        birthdate=date_of_birth.replace("T"," ")
+        #birthdate=birthdate+":00"
         date_of_birth = datetime.strptime(birthdate, '%Y-%m-%d')
         adress  = request.form.get('adress')
         pesel = request.form.get('pesel')#unique
@@ -157,42 +157,20 @@ def logout():
     logout_user()
     return redirect(url_for('main'))
 
-@app.route('/account')
+@app.route('/account', methods = ['GET','POST'])
 @login_required
 def account():
-    return render_template('account.html')
+    form = DeleteUserForm()
+    return render_template('account.html',form=form)
 
 @app.route("/visits", methods=['GET', 'POST'])
 @login_required
 def new_visit():
-    baza=[]
-    bazaa=[]
-    user = User.query.filter(User.class_type==1)    #bierze wszytkich lekarzy
-    for i in user:
-        spec=Specializations.query.filter(Specializations.doctor_id==i.id)  #wszystkie specjalizacje danego lekarza
-        for j in spec:
-            record=(i.id,i.name,i.surname,j.name)
-            bazaa.append(record)
-    # form = VisitForm()
-    baza.append(current_user.id)
-    baza.append(bazaa)
-    return render_template('visits.html',baza=baza)
-
-@app.route("/submit_visit", methods=['GET', 'POST'])
-@login_required
-def submit_visit():
-    if (request.method == 'POST'):
-        id=current_user.id
-        selected = request.form.get('selected')
-        l = selected.split(' ')
-        doctor_id=l[0]
-        date_and_time = request.form.get('date_and_time')
-        note = request.form.get('note')
-        n_visit = Visits(doctor_id,id,date_and_time,-1,note,2) #2 == do potwierdzenia 0=odrzucona 1=potiwerdzona
-        db.session.add(n_visit)
-        db.session.commit()
-        flash('pomyslnie dodano wizyte, poczekaj na jej akceptacje przez lekarza', 'danger')
-        return render_template('account.html')
+    form = VisitForm()
+    if form.validate_on_submit():
+        flash('Wizyta została umówiona!')
+        return redirect(url_for('main'))
+    return render_template('visits.html', form=form)
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
