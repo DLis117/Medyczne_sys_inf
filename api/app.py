@@ -161,6 +161,16 @@ def logout():
 @login_required
 def account():
     form = DeleteUserForm()
+    if form.validate_on_submit():
+        user_to_delete = User.query.filter(id == current_user.id).first()
+        try:
+            logout_user()
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            flash(user_to_delete)
+            return redirect(url_for('main'))
+        except:
+            flash("Nie udało się usunąć konta", 'danger')
     return render_template('account.html',form=form)
 
 @app.route("/visits", methods=['GET', 'POST'])
