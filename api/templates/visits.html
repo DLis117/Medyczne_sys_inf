@@ -1,27 +1,31 @@
 {% extends "layout.html" %}
 {% block content %}
-<form>
+<form action="/submit_visit" method="post">
     <legend>Umów się na wizytę</legend>
     <div class="form-group">
         <fieldset disabled="">
+            <input type="hidden" value="{{ baza[0] }}" name="id">
+        </fieldset>
+        <fieldset disabled="">
             <label class="form-label" for="disabledInput">Pacjent</label>
-            <input class="form-control" id="disabledInput" type="text" placeholder="{{ current_user }}" disabled="">
+            <input name="name" class="form-control" id="disabledInput" type="text" disabled="" placeholder="{{current_user}}">
         </fieldset>
         <fieldset>
             <label for="exampleSelect1" class="form-label mt-4">Lekarz</label>
-            <select class="form-select" id="exampleSelect1">
-                <!-- tu będzie pętla for z listą lekarzy -->
-                <option>Lekarz 1</option>
+            <select class="form-select" id="exampleSelect1" name="selected">
+                {% for record in baza[1]%}
+                    <option class="opcja" value="{{record[0]}} {{record[1]}} {{record[2]}} {{record[3]}}">{{record[1]}} {{record[2]}} {{record[3]}}</option>
+                {%endfor%}
             </select>
 
             <label class="col-form-label mt-4" for="inputDefault">Data i godzina</label>
-            <input type="text" class="form-control" placeholder="Default input" id="inputDefault">
+            <input type="Datetime-local" class="form-control" id="inputDefault" name="date_and_time">
             
             <label for="exampleTextarea" class="form-label mt-4">Powód wizyty (konsultacja, badanie itp.)</label>
-            <textarea class="form-control" id="exampleTextarea" rows="3"></textarea>
+            <textarea class="form-control" id="exampleTextarea" rows="3" name="note"></textarea>
         </fieldset>
     </div>
     <button type="submit" class="btn btn-primary">Zapisz</button>
 </form>
 <!-- BRAK POKOJU BO IMO DZIWNIE JAK PACJENT SAM WPISUJE W KTÓRYM POKOJU -->
-{% endblock content %}
+{% endblock %}
