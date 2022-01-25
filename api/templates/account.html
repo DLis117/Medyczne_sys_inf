@@ -9,6 +9,15 @@
     </ul>
   {% endif %}
 {% endwith %}
-
-    <h1>{{ current_user.email }}</h1>
+    <div class="content-section">
+        <form method="POST" action="">
+            {{form.hidden_tag()}}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Witaj, {{current_user.email}}.</legend>
+            </fieldset>
+            <div class="form-group">
+                {{form.delete(class ="btn btn-outline-info") }}
+            </div>
+        </form>
+    </div>
 {% endblock content %}
