@@ -4,14 +4,17 @@
     <legend>Umów się na wizytę</legend>
     <div class="form-group">
         <fieldset disabled="">
+            <input type="hidden" value="{{ baza[0] }}" name="id">
+        </fieldset>
+        <fieldset disabled="">
             <label class="form-label" for="disabledInput">Pacjent</label>
-            <input name="name" class="form-control" id="disabledInput" type="text" placeholder="{{ current_user }}" disabled="">
+            <input name="name" class="form-control" id="disabledInput" type="text" disabled="" placeholder="{{current_user}}">
         </fieldset>
         <fieldset>
             <label for="exampleSelect1" class="form-label mt-4">Lekarz</label>
             <select class="form-select" id="exampleSelect1" name="selected">
-                {% for record in baza%}
-                    <option class="opcja" value="{{record[0]}} {{record[1]}} {{record[2]}}">{{record}}</option>
+                {% for record in baza[1]%}
+                    <option class="opcja" value="{{record[0]}} {{record[1]}} {{record[2]}} {{record[3]}}">{{record[1]}} {{record[2]}} {{record[3]}}</option>
                 {%endfor%}
             </select>
 
@@ -25,4 +28,4 @@
     <button type="submit" class="btn btn-primary">Zapisz</button>
 </form>
 <!-- BRAK POKOJU BO IMO DZIWNIE JAK PACJENT SAM WPISUJE W KTÓRYM POKOJU -->
-{% endblock content %}
+{% endblock %}

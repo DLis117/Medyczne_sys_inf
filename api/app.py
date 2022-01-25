@@ -1,4 +1,4 @@
-from crypt import methods
+# from crypt import methods
 from flask import Flask, render_template,request,redirect,url_for,flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager,login_user, current_user, logout_user, login_required
@@ -67,13 +67,15 @@ class Visits(db.Model):
     date_and_time=db.Column(db.String(150))
     room=db.Column(db.Integer)
     note = db.Column(db.String(150))
+    visit_confirmed=db.Column(db.Integer)
 
-    def __init__(self, doctor_id, patient_id,date_and_time,room,note):
+    def __init__(self, doctor_id, patient_id,date_and_time,room,note,visit_confirmed):
         self.doctor_id=doctor_id
         self.patient_id=patient_id
         self.date_and_time=date_and_time
         self.room=room
         self.note=note
+        self.visit_confirmed=visit_confirmed
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -100,7 +102,7 @@ def trytoregister():
         name = request.form.get('name')
         surname = request.form.get('surname')
         birthdate=request.form.get('date_of_birth')
-        date_of_birth = datetime.strptime(birthdate, '%y-%m-%d')
+        date_of_birth = datetime.strptime(birthdate, '%Y-%m-%d')
         adress  = request.form.get('adress')
         pesel = request.form.get('pesel')#unique
         email = request.form.get('email')#unique
@@ -129,7 +131,7 @@ def trytoregister():
             return render_template('register.html', form=form)
         password_h = generate_password_hash(password)
         #utworzenie konta
-        Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,0,"jwt_token_default",0)
+        Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,3,"jwt_token_default",0)
         db.session.add(Pacjent)
         db.session.commit()
         flash("Konto utworzone pomyślnie, poczekaj na weryfikacje!")
@@ -163,23 +165,34 @@ def account():
 @app.route("/visits", methods=['GET', 'POST'])
 @login_required
 def new_visit():
-    form = VisitForm()
-    if form.validate_on_submit():
-        flash('Wizyta została umówiona!')
-        return redirect(url_for('main'))
-    return render_template('visits.html', form=form)
+    baza=[]
+    bazaa=[]
+    user = User.query.filter(User.class_type==1)    #bierze wszytkich lekarzy
+    for i in user:
+        spec=Specializations.query.filter(Specializations.doctor_id==i.id)  #wszystkie specjalizacje danego lekarza
+        for j in spec:
+            record=(i.id,i.name,i.surname,j.name)
+            bazaa.append(record)
+    # form = VisitForm()
+    baza.append(current_user.id)
+    baza.append(bazaa)
+    return render_template('visits.html',baza=baza)
 
 @app.route("/submit_visit", methods=['GET', 'POST'])
 @login_required
 def submit_visit():
     if (request.method == 'POST'):
-        name = request.form.get('name')
+        id=current_user.id
         selected = request.form.get('selected')
+        l = selected.split(' ')
+        doctor_id=l[0]
         date_and_time = request.form.get('date_and_time')
         note = request.form.get('note')
-        print(name,selected,date_and_time,note)
-
-    return render_template('visits.html')
+        n_visit = Visits(doctor_id,id,date_and_time,-1,note,2) #2 == do potwierdzenia 0=odrzucona 1=potiwerdzona
+        db.session.add(n_visit)
+        db.session.commit()
+        flash('pomyslnie dodano wizyte, poczekaj na jej akceptacje przez lekarza', 'danger')
+        return render_template('account.html')
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
