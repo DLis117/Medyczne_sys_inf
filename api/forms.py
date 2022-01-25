@@ -43,3 +43,6 @@ class VisitForm(FlaskForm):
     # Dodać ROOM
     # SPRAWDZIĆ CZY NA PEWNO STRING FIELD DLA PACJENTA I DOKTORA SĄ WŁAŚCIWE
 
+class DeleteUserForm(FlaskForm):
+    delete = SubmitField('Usuń Konto')
+    # dodać ew weryfikację mailem
