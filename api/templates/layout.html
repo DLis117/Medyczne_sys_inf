@@ -44,12 +44,23 @@
               <li class="nav-item">
                 <a class="nav-link" href="/about">O nas</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link active" href="{{ url_for('register') }}" >Zarejestruj się</a> 
-              </li>
-              <li>
-                <a class="nav-link active" href="{{ url_for('login') }}">Zaloguj się</a>
-              </li>
+              <div class="navbar-nav">
+                {% if current_user.is_authenticated %}
+                  <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('account') }}">Moje konto</a> 
+                  </li>
+                  <li>
+                    <a class="nav-link active" href="{{ url_for('logout') }}">Wyloguj</a>
+                  </li>
+                {% else %}
+                  <li class="nav-item">
+                    <a class="nav-link active" href="{{ url_for('register') }}">Zarejestruj się</a> 
+                  </li>
+                  <li>
+                    <a class="nav-link active" href="{{ url_for('login') }}">Zaloguj się</a>
+                  </li>
+                  {% endif %}
+              </div>
 <!--               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
                 <div class="dropdown-menu">

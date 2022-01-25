@@ -1,5 +1,6 @@
+#from tkinter.tix import Select
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField,DateField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField,DateField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 
@@ -8,8 +9,8 @@ class RegistrationForm(FlaskForm):
                        validators=[DataRequired(), Length(max = 25)])
     surname = StringField('Nazwisko',
                        validators=[DataRequired(), Length(max = 50)])
-    date_of_birth = StringField('data_urodzenia_PRZEROB KTOS XD',
-                       validators=[DataRequired(), Length(max = 50)])
+    date_of_birth = DateField('Data urodzenia',
+                       validators=[DataRequired()])
 
     adress = StringField('Adres',
                        validators=[DataRequired(), Length(max = 200)])
@@ -33,4 +34,12 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Zapamiętaj mnie')
     submit = SubmitField('Zaloguj')
 
-# class VisitForm(FlaskForm):
+class VisitForm(FlaskForm):
+    patient = StringField('Pacjent', validators=[DataRequired()])
+    doctor = StringField('Lekarz', validators=[DataRequired()])
+    date = DateField('Data i godzina wyzyty', validators=[DataRequired()])
+    note = TextAreaField('Powód wizyty (konsultacja, badanie itp.)')
+    submit = SubmitField('Zapisz')
+    # Dodać ROOM
+    # SPRAWDZIĆ CZY NA PEWNO STRING FIELD DLA PACJENTA I DOKTORA SĄ WŁAŚCIWE
+

@@ -11,7 +11,7 @@ class User(UserMixin,db.Model):
     id=db.Column(db.Integer, primary_key=True)
     name=db.Column(db.String(25))
     surname=db.Column(db.String(50))
-    birthdate=db.Column(db.DateTime)
+    birthdate=db.Column(db.Date())
     address=db.Column(db.String(100))
     pesel=db.Column(db.Integer)
     email=db.Column(db.String(100))
@@ -19,7 +19,7 @@ class User(UserMixin,db.Model):
     password=db.Column(db.String(150))
     class_type=db.Column(db.Integer)                #domyslnie 3 a potem admin zmienia : 0-pacjent 1-lekarz 2-admin
     jwt_token=db.Column(db.String(200))
-    account_confirmed=db.Column(db.Boolean)
+    account_confirmed=db.Column(db.Integer)
 
     def __init__(self, name, surname,birthdate,address,pesel,email,phone_number,password,class_type,jwt_token,account_confirmed):
         self.name = name
@@ -172,9 +172,7 @@ def admin_add_doctor():
         name = request.form.get('name')
         surname = request.form.get('surname')
         birthdate=request.form.get('birthdate')
-        birthdate=birthdate.replace("T"," ")
-        birthdate=birthdate+":00"
-        date_time_obj = datetime.strptime(birthdate, '%Y-%m-%d %H:%M:%S')
+        date_time_obj = datetime.strptime(birthdate, '%Y-%m-%d')
         address = request.form.get('address')
         pesel = request.form.get('pesel')
         email = request.form.get('email')
@@ -182,7 +180,7 @@ def admin_add_doctor():
         password = request.form.get('password')
         class_type=1
         jwt_token="default"
-        account_confirmed=True
+        account_confirmed=1
         password_h=generate_password_hash(password)
 
         Doctor=User(name,surname,date_time_obj,address,pesel,email,phone_number,password_h,class_type,jwt_token,account_confirmed)
@@ -282,7 +280,6 @@ def admin_edit_doctor():
             baza.append(gr.class_type)
             baza.append(gr.jwt_token)
             baza.append(gr.account_confirmed)
-
             #sprawdzam jakie checkboxy zaznaczyc
             bylo=False
             gr=Specializations.query.filter(Specializations.doctor_id==doctor_id)
@@ -372,9 +369,7 @@ def admin_doctor_edited():
         name = request.form.get('name')
         surname = request.form.get('surname')
         birthdate = request.form.get('birthdate')
-        birthdate = birthdate.replace("T", " ")
-        birthdate = birthdate + ":00"
-        date_time_obj = datetime.strptime(birthdate, '%Y-%m-%d %H:%M:%S')
+        date_time_obj = datetime.strptime(birthdate,'%Y-%m-%d')
         address = request.form.get('address')
         pesel = request.form.get('pesel')
         email = request.form.get('email')
@@ -382,8 +377,7 @@ def admin_doctor_edited():
         password = request.form.get('password')
         class_type = request.form.get('class_type')
         jwt_token = request.form.get('jwt_token')
-        account_confirmed = bool(request.form.get('account_confirmed'))
-
+        account_confirmed = request.form.get('account_confirmed')
         spec1 = request.form.get('spec1')  # on/None
         spec2 = request.form.get('spec2')
         spec3 = request.form.get('spec3')
@@ -460,9 +454,7 @@ def admin_patient_edited():
         name = request.form.get('name')
         surname = request.form.get('surname')
         birthdate = request.form.get('birthdate')
-        birthdate = birthdate.replace("T", " ")
-        birthdate = birthdate + ":00"
-        date_time_obj = datetime.strptime(birthdate, '%Y-%m-%d %H:%M:%S')
+        date_time_obj = datetime.strptime(birthdate,'%Y-%m-%d')
         address = request.form.get('address')
         pesel = request.form.get('pesel')
         email = request.form.get('email')
@@ -470,7 +462,7 @@ def admin_patient_edited():
         password = request.form.get('password')
         class_type = request.form.get('class_type')
         jwt_token = request.form.get('jwt_token')
-        account_confirmed = bool(request.form.get('account_confirmed'))
+        account_confirmed = request.form.get('account_confirmed')
 
 
         #edycja pacjenta
