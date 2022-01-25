@@ -157,9 +157,9 @@ def logout():
     logout_user()
     return redirect(url_for('main'))
 
-@app.route('/account', methods = ['GET','POST'])
+@app.route('/delete_account', methods = ['GET','POST'])             #DO POPRAWY, MA USUWAC TEZ WIZYTY! zmienilem nazwy bo kolidowaly.
 @login_required
-def account():
+def delete_account():
     form = DeleteUserForm()
     if form.validate_on_submit():
         user_to_delete = User.query.filter(id == current_user.id).first()
@@ -172,6 +172,28 @@ def account():
         except:
             flash("Nie udało się usunąć konta", 'danger')
     return render_template('account.html',form=form)
+
+@app.route('/account')
+@login_required
+def account():
+    baza=[]
+    user = User.query.filter(User.id == current_user.id).first()
+    if (user.account_confirmed == 1):
+        visits=Visits.query.filter(Visits.patient_id==current_user.id)
+        for i in visits:
+            user=User.query.filter(User.id==i.doctor_id)
+            for j in user:
+                # confmation=0
+                if (i.visit_confirmed == 1):
+                    confirmation = "potwierdzona!"
+                elif (i.visit_confirmed == 0):
+                    confirmation = "odrzucona!"
+                else:
+                    confirmation = "oczekuje na potwierdzenie przez lekarza"
+                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation))
+        return render_template('account.html',baza=baza)
+    else:
+        return "poczekaj na weryfikacje konta!"
 
 @app.route("/visits", methods=['GET', 'POST'])
 @login_required
