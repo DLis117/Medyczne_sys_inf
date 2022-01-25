@@ -67,13 +67,15 @@ class Visits(db.Model):
     date_and_time=db.Column(db.String(150))
     room=db.Column(db.Integer)
     note = db.Column(db.String(150))
+    visit_confirmed=db.Column(db.Integer)
 
-    def __init__(self, doctor_id, patient_id,date_and_time,room,note):
+    def __init__(self, doctor_id, patient_id,date_and_time,room,note,visit_confirmed):
         self.doctor_id=doctor_id
         self.patient_id=patient_id
         self.date_and_time=date_and_time
         self.room=room
         self.note=note
+        self.visit_confirmed=visit_confirmed
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -183,7 +185,6 @@ def account():
         for i in visits:
             user=User.query.filter(User.id==i.doctor_id)
             for j in user:
-                # confmation=0
                 if (i.visit_confirmed == 1):
                     confirmation = "potwierdzona!"
                 elif (i.visit_confirmed == 0):
