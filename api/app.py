@@ -29,7 +29,7 @@ class User(UserMixin,db.Model):
     password=db.Column(db.String(150))
     class_type=db.Column(db.Integer)                #domyslnie 3 a potem admin zmienia : 0-pacjent 1-lekarz 2-admin
     jwt_token=db.Column(db.String(200))
-    account_confirmed=db.Column(db.Boolean)
+    account_confirmed=db.Column(db.Integer)
 
     def __init__(self, name, surname,birthdate,address,pesel,email,phone_number,password,class_type,jwt_token,account_confirmed):
         self.name = name
@@ -99,10 +99,8 @@ def trytoregister():
     if (request.method == 'POST'):
         name = request.form.get('name')
         surname = request.form.get('surname')
-        date_of_birth=request.form.get('date_of_birth')
-        birthdate=date_of_birth.replace("T"," ")
-        #birthdate=birthdate+":00"
-        date_of_birth = datetime.strptime(birthdate, '%d.%m.%Y')
+        birthdate=request.form.get('date_of_birth')
+        date_of_birth = datetime.strptime(birthdate, '%y-%m-%d')
         adress  = request.form.get('adress')
         pesel = request.form.get('pesel')#unique
         email = request.form.get('email')#unique
@@ -170,6 +168,18 @@ def new_visit():
         flash('Wizyta została umówiona!')
         return redirect(url_for('main'))
     return render_template('visits.html', form=form)
+
+@app.route("/submit_visit", methods=['GET', 'POST'])
+@login_required
+def submit_visit():
+    if (request.method == 'POST'):
+        name = request.form.get('name')
+        selected = request.form.get('selected')
+        date_and_time = request.form.get('date_and_time')
+        note = request.form.get('note')
+        print(name,selected,date_and_time,note)
+
+    return render_template('visits.html')
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
