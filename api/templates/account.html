@@ -16,15 +16,19 @@
     <h2>twoje wizyty:</h2>
         {% for record in baza %}
       <div class="ramka4form">
-      <p>wizyta z lekarzem: {{record[1]}} {{record[2]}}, data i godzina: {{record[3]}} w sali: {{record[4]}} wizyta {{record[5]}} </p>
-            <div class=accept_or_deny>
-                <form action="/admin_verify_accept" method="post">
+      <p>wizyta z {{record[6]}}: {{record[1]}} {{record[2]}}, data i godzina: {{record[3]}} w sali: {{record[4]}}. status:   {{record[5]}} </p>
+            <div class=accept_edit_or_deny>
+                <form action="/visit_accept" method="post">
                     <input type="hidden" value="{{record[0]}}" name="id">
-                    <input class="accept" type="submit" value="&#9998;">
+                    <input class="accept" type="{{record[7]}}" value="&#10004;">
                 </form>
-                <form action="/admin_verify_deny" method="post">
+                <form action="/visit_deny" method="post">
                     <input type="hidden" value="{{record[0]}}" name="id">
-                    <input class="deny" type="submit" value="&#x2715;">
+                    <input class="deny" type="{{record[8]}}" value="&#x2715;">
+                </form>
+                <form action="/visit_edit" method="post">
+                    <input type="hidden" value="{{record[0]}}" name="id">
+                    <input class="edit" type="{{record[9]}}" value="&#9998;">
                 </form>
             </div>    
           </div>
@@ -60,24 +64,20 @@
         border: solid 3px #78c2ad;
         margin-bottom: 2vh;
     }
-    .accept_or_deny
+    .accept_edit_or_deny
     {
-        width: 5vw;
+        width: 6vw;
         margin-right: 5px;
         float: right;
         margin-top: -5.5vh;
     }
-    .accept,.deny
+    .accept,.deny,.edit
     {
         border-radius: 5px;
         float: left;
-        margin-right: 0.5vw;
+/*        margin-right: 0.5vw;*/
         width: 2vw;
         border: solid 2px #78c2ad;
-    }
-    .deny
-    {
-        margin: 0;
     }
     
     </style>

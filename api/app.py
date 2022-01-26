@@ -29,7 +29,7 @@ class User(UserMixin,db.Model):
     password=db.Column(db.String(150))
     class_type=db.Column(db.Integer)                #domyslnie 3 a potem admin zmienia : 0-pacjent 1-lekarz 2-admin
     jwt_token=db.Column(db.String(200))
-    account_confirmed=db.Column(db.Boolean)
+    account_confirmed=db.Column(db.Integer)
 
     def __init__(self, name, surname,birthdate,address,pesel,email,phone_number,password,class_type,jwt_token,account_confirmed):
         self.name = name
@@ -103,7 +103,6 @@ def trytoregister():
         surname = request.form.get('surname')
         date_of_birth=request.form.get('date_of_birth')
         birthdate=date_of_birth.replace("T"," ")
-        #birthdate=birthdate+":00"
         date_of_birth = datetime.strptime(birthdate, '%Y-%m-%d')
         adress  = request.form.get('adress')
         pesel = request.form.get('pesel')#unique
@@ -180,23 +179,91 @@ def delete_account():
 def account():
     baza=[]
     user = User.query.filter(User.id == current_user.id).first()
-    if (user.account_confirmed == 1):
+    if ((user.account_confirmed == 1) and (user.class_type==0 or user.class_type==2)):
         visits=Visits.query.filter(Visits.patient_id==current_user.id)
         for i in visits:
             user=User.query.filter(User.id==i.doctor_id)
             for j in user:
                 if (i.visit_confirmed == 1):
+                    o1="hidden"
+                    o2="submit"
+                    o3="submit"
                     confirmation = "potwierdzona!"
                 elif (i.visit_confirmed == 0):
+                    o1 = "hidden"
+                    o2 = "submit"
+                    o3 = "submit"
                     confirmation = "odrzucona!"
+                elif (i.visit_confirmed == 2):
+                    o1 = "hidden"
+                    o2 = "submit"
+                    o3 = "submit"
+                    confirmation = "oczekuje na potwierdzenie przez lekarza!"
                 else:
-                    confirmation = "oczekuje na potwierdzenie przez lekarza"
-                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation))
+                    o1 = "submit"
+                    o2 = "submit"
+                    o3 = "submit"
+                    confirmation = "potwierdz / usun / zmien"
+                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"lekarzem",o1,o2,o3))
         return render_template('account.html',baza=baza)
+    elif(user.account_confirmed==1) and (user.class_type==1):
+        visits = Visits.query.filter(Visits.doctor_id == current_user.id)
+        for i in visits:
+            user=User.query.filter(User.id==i.patient_id)
+            for j in user:
+                if (i.visit_confirmed == 1):
+                    o1 = "hidden"
+                    o2 = "submit"
+                    o3 = "submit"
+                    confirmation = "potwierdzona!"
+                elif (i.visit_confirmed == 0):
+                    o1 = "hidden"
+                    o2 = "hidden"
+                    o3 = "submit"
+                    confirmation = "odrzucona!"
+                elif (i.visit_confirmed == 2):
+                    o1 = "submit"
+                    o2 = "submit"
+                    o3 = "submit"
+                    confirmation = "potwierdz / usun / zmien"
+                else:
+                    o1 = "hidden"
+                    o2 = "hidden"
+                    o3 = "submit"
+                    confirmation = "oczekuje na potwierdzenie przez pacjenta!"
+                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"pacjentem",o1,o2,o3))
+        return render_template('account.html', baza=baza)
     else:
         return "poczekaj na weryfikacje konta!"
 
-@app.route("/visits", methods=['GET', 'POST'])
+@app.route('/visit_accept',methods=['POST','GET'])
+@login_required
+def visit_accept():
+    if (request.method == 'POST'):
+        visit=Visits.query.filter(Visits.id==int(request.form.get('id'))).first()
+        visit.visit_confirmed=1
+        db.session.commit()
+        return redirect("account")
+
+@app.route('/visit_deny',methods=['POST','GET'])
+@login_required
+def visit_deny():
+    if (request.method == 'POST'):
+        visit=Visits.query.filter(Visits.id==int(request.form.get('id'))).first()
+        user=User.query.filter(User.id==current_user.id).first()
+        if(user.class_type==1):
+            visit.visit_confirmed=0
+            db.session.commit()
+            return redirect("account")
+        else:
+            db.session.delete(visit)
+            db.session.commit()
+            return redirect("account")
+
+
+
+
+@app.route("/visits", methods=['GET', 'POST'])                          #PACJENT/LEKARZ
 @login_required
 def new_visit():
     form = VisitForm()
@@ -204,6 +271,398 @@ def new_visit():
         flash('Wizyta została umówiona!')
         return redirect(url_for('main'))
     return render_template('visits.html', form=form)
+#---------------------------------------------------
+@app.route("/admin_index")
+def admin_main():
+    return render_template("admin_index.html")
+
+@login_required
+@app.route('/admin__chose')
+def admin__chose():
+    x=User.query.filter(User.id ==current_user.id).first()
+    if(x.class_type!=2):
+        flash( "nie masz uprawnien administratora!")
+        return redirect("admin_index")
+    baza = []
+    unverified = []
+    patients = []
+    doctors = []
+    Unverified = User.query.filter(User.class_type == 3)  # bierzemy tylko niezweryfikowanych PACJENTOW!!!
+    for i in Unverified:
+        unverified.append(i)
+
+    Patients = User.query.filter(User.class_type == 0)  # bierzemy tylko lekarzy
+    for i in Patients:
+        patients.append(i.id)
+
+    Doctors = User.query.filter(User.class_type == 1)  # bierzemy tylko lekarzy
+    for i in Doctors:
+        doctors.append(i.id)
+
+    baza.append(unverified)
+    baza.append(patients)
+    baza.append(doctors)
+    return render_template(('admin_chose.html'), baza=baza)
+
+
+
+
+
+@app.route('/admin_logging',methods=['POST','GET'])
+def admin_logging():
+    if(request.method=='POST'):
+        email=request.form.get('email')
+        password = request.form.get('password')
+        if (email == "") or (password == ""):
+            flash("wypelnij wszystkie pola!")
+            return render_template(('admin_index.html'))
+        x=User.query.filter(email==email).first()
+        if(x.class_type!=2):
+            flash("nie masz uprawnien administratora!")
+            return render_template(('admin_index.html'))
+        if x and check_password_hash(x.password,password):
+            login_user(x)
+            return redirect("admin__chose")
+        else:
+            flash("nieprawidlowy login lub haslo!")
+            return render_template(('admin_index.html'))
+
+
+@app.route('/admin_verify_accept',methods=['POST','GET'])
+@login_required
+def admin_verify_accept():
+    if (request.method == 'POST'):
+        id = request.form.get('id')
+        pacjent=User.query.filter(User.id==id).first()
+        pacjent.class_type=0
+        db.session.commit()
+        return redirect("admin__chose")
+
+@app.route('/admin_verify_deny',methods=['POST','GET'])
+@login_required
+def admin_verify_deny():
+    if (request.method == 'POST'):
+        id = request.form.get('id')
+        pacjent=User.query.filter(User.id==id).first()
+
+        db.session.delete(pacjent)  #nie trzeba usuwac jego wizyt bo jeszcze takowe nie zostaly utworzone
+        db.session.commit()
+        return redirect("admin__chose")
+
+@app.route('/admin_add_doctor',methods=['POST','GET'])
+@login_required
+def admin_add_doctor():
+    if (request.method == 'POST'):
+        x = User.query.filter(User.id==current_user.id).first()
+        print("xXXXXXX ",x.class_type)
+        if (x.class_type != 2):
+            flash("nie masz uprawnien administratora!")
+            return render_template(('index.html'))
+        name = request.form.get('name')
+        surname = request.form.get('surname')
+        birthdate=request.form.get('birthdate')
+        date_time_obj = datetime.strptime(birthdate, '%Y-%m-%d')
+        address = request.form.get('address')
+        pesel = request.form.get('pesel')
+        email = request.form.get('email')
+        phone_number = request.form.get('phone_number')
+        password = request.form.get('password')
+        class_type=1
+        jwt_token="default"
+        account_confirmed=1
+        password_h=generate_password_hash(password)
+
+        Doctor=User(name,surname,date_time_obj,address,pesel,email,phone_number,password_h,class_type,jwt_token,account_confirmed)
+        db.session.add(Doctor)
+        db.session.commit()
+
+        spec1 = request.form.get('spec1')#on/None
+        spec2 = request.form.get('spec2')
+        spec3 = request.form.get('spec3')
+        spec4 = request.form.get('spec4')
+        spec5 = request.form.get('spec5')
+        spec6 = request.form.get('spec6')
+
+        id=0
+        doctors = User.query.filter(User.class_type==1)
+        for i in doctors:
+            id=int(i.id)    #id ostaniego lekarza (ostatnio dodanego)
+
+        if (spec1 == "on"):
+            spec = Specializations("laryngolog",id)
+            db.session.add(spec)
+        if (spec2 == "on"):
+            spec = Specializations("proktolog",id)
+            db.session.add(spec)
+        if (spec3 == "on"):
+            spec = Specializations("dentysta",id)
+            db.session.add(spec)
+        if (spec4 == "on"):
+            spec = Specializations("okulista",id)
+            db.session.add(spec)
+        if (spec5 == "on"):
+            spec = Specializations("neurolog",id)
+            db.session.add(spec)
+        if (spec6 == "on"):
+            spec = Specializations("gastrolog",id)
+            db.session.add(spec)
+        db.session.commit()
+
+        return redirect("admin__chose")
+#
+#
+# @app.route('/delete',methods=['POST','GET'])
+# @login_required
+# def delete():
+#     if (request.method == 'POST'):
+#         id_lekarza = int(request.form.get('selected'))#nie dodawaj do opcji ale do select'a
+#         gr = Specializations.query.filter(Specializations.id_lekarza == id_lekarza)
+#         for i in gr:
+#             db.session.delete(i)
+#         db.session.commit()
+#         gr = Lekarze.query.filter(Lekarze.id == id_lekarza).first()#pamietaj o first!
+#         db.session.delete(gr)
+#         db.session.commit()
+#         baza = []
+#         lekarze = Lekarze.query.all()
+#         for i in lekarze:
+#             baza.append(i.id)
+#         return render_template(('admin_chose.html'), baza=baza)
+#
+@app.route('/admin_edit_doctor',methods=['POST','GET'])
+@login_required
+def admin_edit_doctor():
+    if (request.method == 'POST'):
+        x = User.query.filter(User.id == current_user.id).first()
+        if (x.class_type != 2):
+            flash("nie masz uprawnien administratora!")
+            return render_template(('admin_index.html'))
+        doctor_id = int(request.form.get('selected'))#nie dodawaj do opcji ale do select'a
+        gr = User.query.filter(User.id == doctor_id).first()  # pamietaj o first!
+        if(gr!=None):
+
+            baza=[]
+            baza.append(doctor_id)
+            baza.append(gr.name)
+            baza.append(gr.surname)
+            baza.append(gr.birthdate)
+            baza.append(gr.address)
+            baza.append(gr.pesel)
+            baza.append(gr.email)
+            baza.append(gr.phone_number)
+            baza.append(gr.password)
+            baza.append(gr.class_type)
+            baza.append(gr.jwt_token)
+            baza.append(int(gr.account_confirmed))
+            #sprawdzam jakie checkboxy zaznaczyc
+            bylo=False
+            gr=Specializations.query.filter(Specializations.doctor_id==doctor_id)
+            for i in gr:
+                if (i.name == "laryngolog"):  # 8
+                    bylo = True
+                    break
+            if (bylo == True):
+                baza.append("checked")
+            else:
+                baza.append("")
+            bylo = False
+            for i in gr:
+                if (i.name == "proktolog"):  # 9
+                    bylo = True
+                    break
+            if (bylo == True):
+                baza.append("checked")
+            else:
+                baza.append("")
+            bylo = False
+            for i in gr:
+                if (i.name == "dentysta"):  # 10
+                    bylo = True
+                    break
+            if (bylo == True):
+                baza.append("checked")
+            else:
+                baza.append("")
+            bylo = False
+            for i in gr:
+                if (i.name == "okulista"):  # 11
+                    bylo = True
+                    break
+            if (bylo == True):
+                baza.append("checked")
+            else:
+                baza.append("")
+            bylo = False
+            for i in gr:
+                if (i.name == "neurolog"):  # 12
+                    bylo = True
+                    break
+            if (bylo == True):
+                baza.append("checked")
+            else:
+                baza.append("")
+            bylo = False
+            for i in gr:
+                if (i.name == "gastrolog"):  # 13
+                    bylo = True
+                    break
+            if (bylo == True):
+                baza.append("checked")
+            else:
+                baza.append("")
+            return render_template(('admin_edit_doctor.html'), baza=baza)
+
+@app.route('/admin_edit_patient',methods=['POST','GET'])
+@login_required
+def admin_edit_patient():
+    if (request.method == 'POST'):
+        x = User.query.filter(User.id == current_user.id).first()
+        if (x.class_type != 2):
+            flash("nie masz uprawnien administratora!")
+            return render_template(('admin_index.html'))
+        patient_id = int(request.form.get('selected'))#nie dodawaj do opcji ale do select'a
+        gr = User.query.filter(User.id == patient_id).first()  # pamietaj o first!
+        if(gr!=None):
+            baza=[]
+            baza.append(patient_id)
+            baza.append(gr.name)
+            baza.append(gr.surname)
+            baza.append(gr.birthdate)
+            baza.append(gr.address)
+            baza.append(gr.pesel)
+            baza.append(gr.email)
+            baza.append(gr.phone_number)
+            baza.append(gr.password)
+            baza.append(gr.class_type)
+            baza.append(gr.jwt_token)
+            baza.append(int(gr.account_confirmed))
+            return render_template(('admin_edit_patient.html'), baza=baza)
+
+
+@app.route('/admin_doctor_edited',methods=['POST','GET'])
+@login_required
+def admin_doctor_edited():
+    if (request.method == 'POST'):
+        id=request.form.get('id')
+        name = request.form.get('name')
+        surname = request.form.get('surname')
+        birthdate = request.form.get('birthdate')
+        date_time_obj = datetime.strptime(birthdate,'%Y-%m-%d')
+        address = request.form.get('address')
+        pesel = request.form.get('pesel')
+        email = request.form.get('email')
+        phone_number = request.form.get('phone_number')
+        password = request.form.get('password')
+        class_type = request.form.get('class_type')
+        jwt_token = request.form.get('jwt_token')
+        account_confirmed = request.form.get('account_confirmed')
+        spec1 = request.form.get('spec1')  # on/None
+        spec2 = request.form.get('spec2')
+        spec3 = request.form.get('spec3')
+        spec4 = request.form.get('spec4')
+        spec5 = request.form.get('spec5')
+        spec6 = request.form.get('spec6')
+
+        gr = Specializations.query.filter(Specializations.doctor_id == id)
+        for i in gr:
+            db.session.delete(i)
+        db.session.commit()
+
+        if (spec1 == "on"):
+            spec = Specializations("laryngolog", id)
+            db.session.add(spec)
+        if (spec2 == "on"):
+            spec = Specializations("proktolog", id)
+            db.session.add(spec)
+        if (spec3 == "on"):
+            spec = Specializations("dentysta", id)
+            db.session.add(spec)
+        if (spec4 == "on"):
+            spec = Specializations("okulista", id)
+            db.session.add(spec)
+        if (spec5 == "on"):
+            spec = Specializations("neurolog", id)
+            db.session.add(spec)
+        if (spec6 == "on"):
+            spec = Specializations("gastrolog", id)
+            db.session.add(spec)
+        db.session.commit()
+
+        gr = User.query.filter(User.id == id).first()
+        gr.name=name
+        gr.surname=surname
+        gr.birthdate=date_time_obj
+        gr.address=address
+        gr.pesel=pesel
+        gr.email=email
+        gr.phone_number=phone_number
+        gr.password=password
+        gr.class_type=class_type
+        gr.jwt_token=jwt_token
+        gr.account_confirmed=account_confirmed
+        db.session.commit()
+
+        return redirect("admin__chose")
+
+
+@app.route('/admin_patient_edited',methods=['POST','GET'])
+@login_required
+def admin_patient_edited():
+    if (request.method == 'POST'):
+        id=request.form.get('id')
+        name = request.form.get('name')
+        surname = request.form.get('surname')
+        birthdate = request.form.get('birthdate')
+        date_time_obj = datetime.strptime(birthdate,'%Y-%m-%d')
+        address = request.form.get('address')
+        pesel = request.form.get('pesel')
+        email = request.form.get('email')
+        phone_number = request.form.get('phone_number')
+        password = request.form.get('password')
+        class_type = request.form.get('class_type')
+        jwt_token = request.form.get('jwt_token')
+        account_confirmed = request.form.get('account_confirmed')
+
+
+        #edycja pacjenta
+        gr = User.query.filter(User.id == id).first()
+        gr.name=name
+        gr.surname=surname
+        gr.birthdate=date_time_obj
+        gr.address=address
+        gr.pesel=pesel
+        gr.email=email
+        gr.phone_number=phone_number
+        gr.password=password
+        gr.class_type=class_type
+        gr.jwt_token=jwt_token
+        gr.account_confirmed=account_confirmed
+        db.session.commit()
+
+        return redirect("admin__chose")
+
+
+@app.route('/admin_back',methods=['POST','GET'])
+@login_required
+def admin_back():
+    x = User.query.filter(User.id == current_user.id).first()
+    if (x.class_type != 2):
+        flash("nie masz uprawnien administratora!")
+        return render_template(('admin_index.html'))
+    return redirect("admin__chose")
+#
+#
+
+@app.route('/admin_logout',methods=['POST','GET'])
+@login_required
+def admin_logout():
+    x = User.query.filter(User.id == current_user.id).first()
+    if (x.class_type != 2):
+        flash("nie masz uprawnien administratora!")
+        return render_template(('admin_index.html'))
+    logout_user()
+    return render_template(('admin_index.html'))
+#---------------------------------------------------
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
