@@ -270,7 +270,19 @@ def new_visit():
     if form.validate_on_submit():
         flash('Wizyta została umówiona!')
         return redirect(url_for('main'))
-    return render_template('visits.html', form=form)
+    baza = []
+    bazaa = []
+    user = User.query.filter(User.class_type == 1)  # bierze wszytkich lekarzy
+    for i in user:
+        spec = Specializations.query.filter(Specializations.doctor_id == i.id)  # wszystkie specjalizacje danego lekarza
+        for j in spec:
+            record = (i.id, i.name, i.surname, j.name)
+            bazaa.append(record)
+    # form = VisitForm()
+    baza.append(current_user.id)
+    baza.append(bazaa)
+    return render_template('visits.html', baza=baza)
+
 #---------------------------------------------------
 @app.route("/admin_index")
 def admin_main():
