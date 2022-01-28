@@ -1,2 +1,2 @@
-# Medyczne_sys_inf
-owners: Natalia G, Mateusz W, Dominik L
+# Projekt Przychodni
+owners: Natalia Grudzień, Mateusz Wasyluk, Dominik Lis
