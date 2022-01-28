@@ -46,3 +46,16 @@ class VisitForm(FlaskForm):
 class DeleteUserForm(FlaskForm):
     delete = SubmitField('Usuń Konto')
     # dodać ew weryfikację mailem
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email',
+                        validators=[DataRequired(), Email()])
+    submit = SubmitField('Zresetuj hasło')
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Hasło',
+                             validators=[DataRequired()])
+    confirm_password = PasswordField('Potwierdź Hasło',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Zapisz Hasło')

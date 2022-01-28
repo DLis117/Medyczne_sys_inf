@@ -1,17 +1,25 @@
-#from crypt import methods
+from lib2to3.pgen2 import token
+import os
 from flask import Flask, render_template,request,redirect,url_for,flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager,login_user, current_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import RegistrationForm, LoginForm,VisitForm, DeleteUserForm
+from forms import RegistrationForm, LoginForm,VisitForm, DeleteUserForm, RequestResetForm, ResetPasswordForm
 from datetime import datetime
-#from wtforms.fields.html5 import DateField
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from flask_mail import Mail, Message
 
 app=Flask(__name__)
 db=SQLAlchemy()
 login_manager=LoginManager()
 login_manager.login_view = 'login'
 login_manager.login_message = 'Musisz być zalogowany, by zobaczyć tę stronę.'
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD')
+mail = Mail(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -46,6 +54,19 @@ class User(UserMixin,db.Model):
 
     def __str__(self):
         return self.name + ' ' + self.surname
+
+    def get_reset_token(self, expires_sec=1800):
+        s = Serializer(app.config['SECRET_KEY'], expires_sec)
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+    
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']
+        except:
+            return None
+        return User.query.get(user_id)
 
 class Specializations(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -153,10 +174,55 @@ def login():
              flash('Logowanie nieudane, sprawdź email i hasło', 'danger')
     return render_template('login.html', form=form)
 
-@app.route('/logut')
+@app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('main'))
+
+def send_reset_email(user):
+    token = user.get_reset_token()
+    msg = Message('Reset hasła',
+                    sender='noreply@demo.com', 
+                    recipients=[user.email])
+    msg.body = '''By zresetować swoje hasło, wejdź w poniższy link:
+{}
+
+Jeśli nie chcesz zresetować swojego hasła, zignoruj ten email, żadne zmiany nie zostaną wprowadzone.
+'''.format(url_for('reset_token', token=token, _external=True))
+    mail.send(msg)
+
+@app.route('/reset_password', methods=['GET','POST'])
+def reset_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('main'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        # if not user:
+        #     flash("Konto założone na podany email nie istnieje!")
+        #     return redirect(url_for('reset_password'))
+        send_reset_email(user)
+        flash("Email z instrukcjami został wysłany.")
+        return redirect(url_for('login'))
+    return render_template('reset_request.html',title='Reset hasła', form=form)
+    
+
+@app.route('/reset_password/<token>', methods=['GET','POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main'))
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash("Nieprawidłowy lub wygasły token")
+        return redirect(url_for('reset_password'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        password_h = generate_password_hash(form.password)
+        user.password = password_h
+        db.session.commit()
+        flash("Hasło zostało zmienione!")
+        return redirect(url_for('login'))
+    return render_template('reset_token.html',title='Reset hasła', form=form)
 
 @app.route('/delete_account', methods = ['GET','POST'])             #DO POPRAWY, MA USUWAC TEZ WIZYTY! zmienilem nazwy bo kolidowaly.
 @login_required
@@ -675,6 +741,7 @@ def admin_logout():
     logout_user()
     return render_template(('admin_index.html'))
 #---------------------------------------------------
+
 
 if __name__=="__main__":
     app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///db.sqlite'
