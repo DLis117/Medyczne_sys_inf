@@ -17,7 +17,7 @@
         {% for record in baza %}
       <div class="ramka4form">
 
-      <p>wizyta z {{record[6]}}: {{record[1]}} {{record[2]}}, data i godzina: {{record[3]}} w sali: {{record[4]}}, powod: {{record[10]}}. status:   {{record[5]}} </p>
+      <p>wizyta z {{record[6]}}: {{record[1]}} {{record[2]}}, data i godzina: {{record[3]}} {{record[11]}} {{record[4]}}, powod: {{record[10]}}. status:   {{record[5]}} </p>
             <div class=accept_edit_or_deny>
                 <form action="/visit_accept" method="post">
                     <input type="hidden" value="{{record[0]}}" name="id">
@@ -40,7 +40,9 @@
           </div>
     {% endfor %}
 </div>
-            
+        <form  action="/delete_account" method="post">
+            <input class="deletee edit" type="submit" value="usun konto">
+        </form>
         
     
     <style>
@@ -50,6 +52,7 @@
         border: 0;
         padding: 0;
     }
+
     .ramka4
     {
         position: relative;
@@ -85,6 +88,16 @@
         width: 2vw;
         border: solid 2px #78c2ad;
     }
-    
+    .deletee
+    {
+     width: 15%;
+     height: 7vh;
+     background: darkred;
+     position: absolute;
+     right: -50%;
+     top: 10%;
+     color: red;
+     border: solid 2px red;
+    }
     </style>
 {% endblock content %}

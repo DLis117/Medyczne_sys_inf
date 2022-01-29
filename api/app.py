@@ -224,21 +224,26 @@ def reset_token(token):
         return redirect(url_for('login'))
     return render_template('reset_token.html',title='Reset hasła', form=form)
 
-@app.route('/delete_account', methods = ['GET','POST'])             #DO POPRAWY, MA USUWAC TEZ WIZYTY! zmienilem nazwy bo kolidowaly.
+@app.route('/delete_account', methods = ['GET','POST'])
 @login_required
 def delete_account():
-    form = DeleteUserForm()
-    if form.validate_on_submit():
-        user_to_delete = User.query.filter(id == current_user.id).first()
-        try:
+        if (request.method == 'POST'):
+            user=User.query.filter(User.id==current_user.id).first()
+            if(user.class_type==1):
+                visits=Visits.query.filter(Visits.doctor_id==current_user.id)
+                for i in visits:
+                    db.session.delete(i)
+                    db.session.commit()
+            else:
+                visits = Visits.query.filter(Visits.patient_id == current_user.id)
+                for i in visits:
+                    db.session.delete(i)
+                    db.session.commit()
             logout_user()
-            db.session.delete(user_to_delete)
+            db.session.delete(user)
             db.session.commit()
-            flash(user_to_delete)
-            return redirect(url_for('main'))
-        except:
-            flash("Nie udało się usunąć konta", 'danger')
-    return render_template('account.html',form=form)
+            flash("konto usuniete!", 'danger')
+            return redirect("/")
 
 @app.route('/account')
 @login_required
@@ -251,8 +256,6 @@ def account():
             user=User.query.filter(User.id==i.doctor_id)
 
             for j in user:
-                x = j.email
-                print(x)
                 if (i.visit_confirmed == 1):
                     o1="hidden"
                     o2="submit"
@@ -273,7 +276,13 @@ def account():
                     o2 = "submit"
                     o3 = "submit"
                     confirmation = "potwierdz / usun / zmien"
-                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"lekarzem",o1,o2,o3,i.note))
+                sala=i.room
+                if(sala==-1):
+                    sala=""
+                    w_sali=""
+                else:
+                    w_sali="w sali: "
+                baza.append((i.id,j.name,j.surname,i.date_and_time,sala,confirmation,"lekarzem",o1,o2,o3,i.note,w_sali))
         return render_template('account.html',baza=baza)
     elif(user.account_confirmed==1) and (user.class_type==1):
         visits = Visits.query.filter(Visits.doctor_id == current_user.id)
@@ -418,6 +427,9 @@ def try_to_edit_visit():
 @app.route("/visits", methods=['GET', 'POST'])                          #PACJENT/LEKARZ
 @login_required
 def new_visit():
+    if(current_user.class_type!=0):
+        return "lekarz nie moze sie umawiac na wizyty!" ################################################3trzeba tu zmienic
+
     form = VisitForm()
     if form.validate_on_submit():
         flash('Wizyta została umówiona!')
@@ -434,6 +446,32 @@ def new_visit():
     baza.append(current_user.id)
     baza.append(bazaa)
     return render_template('visits.html', baza=baza)
+
+@app.route('/try_to_add_visit',methods=['POST','GET'])
+@login_required
+def try_to_add_visit():
+    if (request.method == 'POST'):
+        patient_id=current_user.id
+        selected=request.form.get("selected")
+        print(selected)
+        l=selected.split(" ")
+        doctor_id=l[0]
+        date_and_time = request.form.get('date_and_time')
+        date_and_time=date_and_time.replace("T"," ")
+        date_and_time+=":00"
+        datetime_object = datetime.strptime(date_and_time, '%Y-%m-%d %H:%M:%S')
+        room= -1
+        note=request.form.get('note')
+        if(note==None or note==""):
+            note=""
+
+        visit_confirmed=2
+
+        visit=Visits(doctor_id,patient_id,datetime_object,room,note,visit_confirmed)
+        db.session.add(visit)
+        db.session.commit()
+        flash("wizyta dodana pomyslnie")
+        return redirect("account")
 
 #---------------------------------------------------
 @app.route("/admin_index")
@@ -467,8 +505,6 @@ def admin__chose():
     baza.append(patients)
     baza.append(doctors)
     return render_template(('admin_chose.html'), baza=baza)
-
-
 
 
 
@@ -572,26 +608,7 @@ def admin_add_doctor():
         db.session.commit()
 
         return redirect("admin__chose")
-#
-#
-# @app.route('/delete',methods=['POST','GET'])
-# @login_required
-# def delete():
-#     if (request.method == 'POST'):
-#         id_lekarza = int(request.form.get('selected'))#nie dodawaj do opcji ale do select'a
-#         gr = Specializations.query.filter(Specializations.id_lekarza == id_lekarza)
-#         for i in gr:
-#             db.session.delete(i)
-#         db.session.commit()
-#         gr = Lekarze.query.filter(Lekarze.id == id_lekarza).first()#pamietaj o first!
-#         db.session.delete(gr)
-#         db.session.commit()
-#         baza = []
-#         lekarze = Lekarze.query.all()
-#         for i in lekarze:
-#             baza.append(i.id)
-#         return render_template(('admin_chose.html'), baza=baza)
-#
+
 @app.route('/admin_edit_doctor',methods=['POST','GET'])
 @login_required
 def admin_edit_doctor():
