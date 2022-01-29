@@ -16,7 +16,8 @@
     <h2>twoje wizyty:</h2>
         {% for record in baza %}
       <div class="ramka4form">
-      <p>wizyta z {{record[6]}}: {{record[1]}} {{record[2]}}, data i godzina: {{record[3]}} w sali: {{record[4]}}. status:   {{record[5]}} </p>
+
+      <p>wizyta z {{record[6]}}: {{record[1]}} {{record[2]}}, data i godzina: {{record[3]}} w sali: {{record[4]}}, powod: {{record[10]}}. status:   {{record[5]}} </p>
             <div class=accept_edit_or_deny>
                 <form action="/visit_accept" method="post">
                     <input type="hidden" value="{{record[0]}}" name="id">
@@ -28,6 +29,11 @@
                 </form>
                 <form action="/visit_edit" method="post">
                     <input type="hidden" value="{{record[0]}}" name="id">
+                    <input type="hidden" value="{{record[1]}}" name="name">
+                    <input type="hidden" value="{{record[2]}}" name="surname">
+                    <input type="hidden" value="{{record[3]}}" name="date_and_time">
+                    <input type="hidden" value="{{record[4]}}" name="room">
+                    <input type="hidden" value="{{record[10]}}" name="note">
                     <input class="edit" type="{{record[9]}}" value="&#9998;">
                 </form>
             </div>    

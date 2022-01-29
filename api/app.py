@@ -249,7 +249,10 @@ def account():
         visits=Visits.query.filter(Visits.patient_id==current_user.id)
         for i in visits:
             user=User.query.filter(User.id==i.doctor_id)
+
             for j in user:
+                x = j.email
+                print(x)
                 if (i.visit_confirmed == 1):
                     o1="hidden"
                     o2="submit"
@@ -270,7 +273,7 @@ def account():
                     o2 = "submit"
                     o3 = "submit"
                     confirmation = "potwierdz / usun / zmien"
-                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"lekarzem",o1,o2,o3))
+                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"lekarzem",o1,o2,o3,i.note))
         return render_template('account.html',baza=baza)
     elif(user.account_confirmed==1) and (user.class_type==1):
         visits = Visits.query.filter(Visits.doctor_id == current_user.id)
@@ -297,7 +300,7 @@ def account():
                     o2 = "hidden"
                     o3 = "submit"
                     confirmation = "oczekuje na potwierdzenie przez pacjenta!"
-                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"pacjentem",o1,o2,o3))
+                baza.append((i.id,j.name,j.surname,i.date_and_time,i.room,confirmation,"pacjentem",o1,o2,o3,i.note,current_user.id))
         return render_template('account.html', baza=baza)
     else:
         return "poczekaj na weryfikacje konta!"
@@ -311,7 +314,7 @@ def visit_accept():
         db.session.commit()
         return redirect("account")
 
-@app.route('/visit_deny',methods=['POST','GET'])
+@app.route('/visit_deny',methods=['POST','GET']) #lekarz jedynie oznacza ze termin odrzucony a pacjent usuwa
 @login_required
 def visit_deny():
     if (request.method == 'POST'):
@@ -327,7 +330,90 @@ def visit_deny():
             return redirect("account")
 
 
+@app.route('/visit_edit',methods=['POST','GET'])
+@login_required
+def visit_edit():
+    if (request.method == 'POST'):
+        visit=Visits.query.filter(Visits.id==int(request.form.get('id'))).first()
+        user=User.query.filter(User.id==current_user.id).first()
+        nrp=""
+        if (user.class_type == 1):
+            nrp="nr pokoju"
 
+        id=visit.id
+        name = request.form.get('name')
+        surname = request.form.get('surname')
+        specialization = request.form.get('specialization')
+        date_and_time = request.form.get('date_and_time')
+        datetime_object = datetime.strptime(date_and_time, '%Y-%m-%d %H:%M:%S')
+        room = request.form.get('room')
+        note = request.form.get('note')
+        bazaaa=[]
+        bazaaa.append(id)
+        bazaaa.append(name)
+        bazaaa.append(surname)
+        bazaaa.append(specialization)
+        bazaaa.append(datetime_object)
+        bazaaa.append(room)
+        bazaaa.append(note)
+
+
+        visibility = []
+        if(user.class_type==1):
+            visibility.append("number")
+        else:
+            visibility.append("hidden")
+
+        baza = []
+        bazaa = []
+        user = User.query.filter(User.class_type == 1)  # bierze wszytkich lekarzy
+        for i in user:
+            spec = Specializations.query.filter(
+                Specializations.doctor_id == i.id)  # wszystkie specjalizacje danego lekarza
+            for j in spec:
+                record = (i.id, i.name, i.surname, j.name)
+                bazaa.append(record)
+
+        user=User.query.filter(User.id==visit.patient_id).first()
+        baza.append((user.name,user.surname))
+        baza.append(bazaa)
+        baza.append(bazaaa)
+        baza.append(visibility)
+        baza.append(nrp)
+        return render_template('visit_edit2.html', baza=baza)
+
+
+@app.route('/try_to_edit_visit',methods=['POST','GET'])
+@login_required
+def try_to_edit_visit():
+    if (request.method == 'POST'):
+        idd=request.form.get('idxx')
+        date_and_time = request.form.get('date_and_time')
+        date_and_time=date_and_time.replace("T"," ")
+        date_and_time+=":00"
+        datetime_object = datetime.strptime(date_and_time, '%Y-%m-%d %H:%M:%S')
+        room = request.form.get('room')
+        note = request.form.get('note')
+        selected=request.form.get('selected')
+        l = selected.split(' ')
+
+        doctor_id=User.query.filter(User.name==l[1], User.surname==l[2]).first()
+        doctor_id=doctor_id.id
+        visit=Visits.query.filter(Visits.id==idd).first()
+        visit.doctor_id=doctor_id
+        visit.date_and_time=datetime_object
+        visit.room=room
+        if(note!=None and note!=""):
+            visit.note=note
+        else:
+            visit.note=""
+        if(current_user.class_type==0):
+            visit.visit_confirmed=2
+        else:
+            visit.visit_confirmed=3
+
+        db.session.commit()
+        return redirect("account")
 
 @app.route("/visits", methods=['GET', 'POST'])                          #PACJENT/LEKARZ
 @login_required
@@ -432,7 +518,6 @@ def admin_verify_deny():
 def admin_add_doctor():
     if (request.method == 'POST'):
         x = User.query.filter(User.id==current_user.id).first()
-        print("xXXXXXX ",x.class_type)
         if (x.class_type != 2):
             flash("nie masz uprawnien administratora!")
             return render_template(('index.html'))
