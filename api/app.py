@@ -428,7 +428,8 @@ def try_to_edit_visit():
 @login_required
 def new_visit():
     if(current_user.class_type!=0):
-        return "lekarz nie moze sie umawiac na wizyty!" ################################################3trzeba tu zmienic
+        flash("lekarz nie moze sie umawiac na wizyty!") ################################################3trzeba tu zmienic
+        return redirect("account")
 
     form = VisitForm()
     if form.validate_on_submit():
