@@ -1,2 +1,9 @@
-wir@gmail.com
-wiktor123
+Schemat tworzenie maila i hasła:
+mail - 3litery z imienia + 3litery z nazwiska + @gmail.com
+hasło - 3litery z imienia + 3litery z nazwiska
+
+Przykład:
+Konrad Chmielewski:
+mail- konchm@gmail.com
+hasło - konchm
+
