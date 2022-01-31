@@ -2,8 +2,36 @@ Schemat tworzenie maila i hasła:
 mail - 3litery z imienia + 3litery z nazwiska + @gmail.com
 hasło - 3litery z imienia + 3litery z nazwiska
 
-Przykład:
+Przykłady dla lekarzy:
 Konrad Chmielewski:
 mail- konchm@gmail.com
 hasło - konchm
 
+Michael Alban:
+micalb@gmail.com, micalb
+
+Zenona Zięba:
+zenzie@gmail.com, zenzie
+
+Wilhelm Wróbel:
+wilwro@gmail.com, wilwro
+
+Jowita Markiewicz:
+jowmar@gmail.com, jowmar
+
+Przykłady dla Pacjentów:
+
+Aleksandra Marcinak (tu się jebłam w akcji):
+almarc@gmail.com, almarc
+
+Walter Świątek:
+walswi@gmail.com, walswi
+
+Feliks Kruk:
+felkru@gmail.com, felkru
+
+Cecylia Markowska:
+cecmar@gmail.com, cecmar
+
+Regina Kowalska:
+regkow@gmail.com, regkow
