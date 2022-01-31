@@ -155,7 +155,7 @@ def trytoregister():
             return render_template('register.html', form=form)
         password_h = generate_password_hash(password)
         #utworzenie konta
-        Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,3,"jwt_token_default",0)
+        Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,3,"jwt_token_default",1)
         db.session.add(Pacjent)
         db.session.commit()
         flash("Konto utworzone pomyślnie, poczekaj na weryfikacje!")
