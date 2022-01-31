@@ -254,7 +254,7 @@ def delete_account():
 def account():
     baza=[]
     user = User.query.filter(User.id == current_user.id).first()
-    if ((user.account_confirmed == 1) and (user.class_type==0 or user.class_type==2)):
+    if ((user.class_type==0 or user.class_type==2)):
         visits=Visits.query.filter(Visits.patient_id==current_user.id)
         for i in visits:
             user=User.query.filter(User.id==i.doctor_id)
@@ -288,7 +288,7 @@ def account():
                     w_sali="w sali: "
                 baza.append((i.id,j.name,j.surname,i.date_and_time,sala,confirmation,"lekarzem",o1,o2,o3,i.note,w_sali))
         return render_template('account.html',baza=baza)
-    elif(user.account_confirmed==1) and (user.class_type==1):
+    elif(user.class_type==1):
         visits = Visits.query.filter(Visits.doctor_id == current_user.id)
         for i in visits:
             user=User.query.filter(User.id==i.patient_id)
@@ -540,6 +540,7 @@ def admin_verify_accept():
         id = request.form.get('id')
         pacjent=User.query.filter(User.id==id).first()
         pacjent.class_type=0
+        pacjent.account_confirmed=1
         db.session.commit()
         return redirect("admin__chose")
 
