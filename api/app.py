@@ -17,8 +17,8 @@ login_manager.login_message = 'Musisz być zalogowany, by zobaczyć tę stronę.
 app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
-app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASSWORD')
+app.config['MAIL_USERNAME'] = "przychodniakonskiezdrowie@gmail.com"
+app.config['MAIL_PASSWORD'] = "Przychodniakonskiezdrowie11:33"
 mail = Mail(app)
 
 @login_manager.user_loader
@@ -217,11 +217,13 @@ def reset_token(token):
         return redirect(url_for('reset_password'))
     form = ResetPasswordForm()
     if form.validate_on_submit():
-        password_h = generate_password_hash(form.password)
-        user.password = password_h
-        db.session.commit()
-        flash("Hasło zostało zmienione!")
-        return redirect(url_for('login'))
+        if (request.method == 'POST'):
+            password = request.form.get('password')
+            password_h = generate_password_hash(password)
+            user.password = password_h
+            db.session.commit()
+            flash("Hasło zostało zmienione!")
+            return redirect(url_for('login'))
     return render_template('reset_token.html',title='Reset hasła', form=form)
 
 @app.route('/delete_account', methods = ['GET','POST'])
