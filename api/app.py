@@ -428,11 +428,11 @@ def try_to_edit_visit():
         db.session.commit()
         return redirect("account")
 
-@app.route("/visits", methods=['GET', 'POST'])                          #PACJENT/LEKARZ
+@app.route("/visits", methods=['GET', 'POST'])
 @login_required
 def new_visit():
     if(current_user.class_type!=0):
-        flash("lekarz nie moze sie umawiac na wizyty!") ################################################3trzeba tu zmienic
+        flash("lekarz nie moze sie umawiac na wizyty!")
         return redirect("account")
 
     form = VisitForm()
