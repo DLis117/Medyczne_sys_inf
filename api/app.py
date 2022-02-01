@@ -55,6 +55,7 @@ class User(UserMixin,db.Model):
     def __str__(self):
         return self.name + ' ' + self.surname
 
+
     def get_reset_token(self, expires_sec=1800):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
         return s.dumps({'user_id': self.id}).decode('utf-8')
@@ -158,7 +159,15 @@ def trytoregister():
         Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,3,"jwt_token_default",1)
         db.session.add(Pacjent)
         db.session.commit()
-        flash("Konto utworzone pomyślnie, poczekaj na weryfikacje!")
+        flash("Konto utworzone pomyślnie!")
+
+        msg = Message('Przychodnia Końskie Zdrowie: wizyta',
+                    sender='Przychodnia Końskie Zdrowie', 
+                    recipients=[email])
+        msg.body = '''Szanowny Pacjencie, Szanowna Pacjentko twoje konto w naszej Przychodni zostało właśnie utworzone!
+'''
+        mail.send(msg)
+
         return render_template('home.html')
 
 @app.route('/login', methods=['GET','POST'])
@@ -169,9 +178,9 @@ def login():
     if form.validate_on_submit():
          user = User.query.filter_by(email=form.email.data).first()
          if user and check_password_hash(user.password, form.password.data):
-             login_user(user, remember=form.remember.data)
-             next_page = request.args.get('next')
-             return redirect(next_page) if next_page else redirect(url_for('main'))
+            login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('main'))
          else:
              flash('Logowanie nieudane, sprawdź email i hasło', 'danger')
     return render_template('login.html', form=form)
@@ -184,7 +193,7 @@ def logout():
 def send_reset_email(user):
     token = user.get_reset_token()
     msg = Message('Reset hasła',
-                    sender='noreply@demo.com', 
+                    sender='Przychodnia Końskie Zdrowie', 
                     recipients=[user.email])
     msg.body = '''By zresetować swoje hasło, wejdź w poniższy link:
 {}
@@ -200,9 +209,9 @@ def reset_password():
     form = RequestResetForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        # if not user:
-        #     flash("Konto założone na podany email nie istnieje!")
-        #     return redirect(url_for('reset_password'))
+        if not user:
+            flash("Konto założone na podany email nie istnieje!")
+            return redirect(url_for('reset_password'))
         send_reset_email(user)
         flash("Email z instrukcjami został wysłany.")
         return redirect(url_for('login'))
@@ -336,10 +345,22 @@ def visit_deny():
         if(user.class_type==1):
             visit.visit_confirmed=0
             db.session.commit()
+            msg = Message('Przychodnia Końskie Zdrowie: wizyta',
+                    sender='Przychodnia Końskie Zdrowie', 
+                    recipients=[user.email])
+            msg.body = '''Szanowny Pacjencie, Szanowna Pacjentko twoja wizyta została anulowana.
+'''
+            mail.send(msg)
             return redirect("account")
         else:
             db.session.delete(visit)
             db.session.commit()
+            msg = Message('Przychodnia Końskie Zdrowie: wizyta',
+                    sender='Przychodnia Końskie Zdrowie', 
+                    recipients=[user.email])
+            msg.body = '''Szanowny Pacjencie, Szanowna Pacjentko twoja wizyta została anulowana.
+'''
+            mail.send(msg)
             return redirect("account")
 
 
@@ -393,6 +414,14 @@ def visit_edit():
         baza.append(bazaaa)
         baza.append(visibility)
         baza.append(nrp)
+
+        msg = Message('Przychodnia Końskie Zdrowie: wizyta',
+                    sender='Przychodnia Końskie Zdrowie', 
+                    recipients=[user.email])
+        msg.body = '''Szanowny Pacjencie, Szanowna Pacjentko twoja wizyta została zmieniona na
+        {}
+'''.format(date_and_time)
+        mail.send(msg)
         return render_template('visit_edit2.html', baza=baza)
 
 
@@ -438,6 +467,8 @@ def new_visit():
     form = VisitForm()
     if form.validate_on_submit():
         flash('Wizyta została umówiona!')
+
+
         return redirect(url_for('main'))
     baza = []
     bazaa = []
@@ -476,6 +507,12 @@ def try_to_add_visit():
         db.session.add(visit)
         db.session.commit()
         flash("wizyta dodana pomyslnie")
+        msg = Message('Przychodnia Końskie Zdrowie: wizyta',
+                    sender='Przychodnia Końskie Zdrowie', 
+                    recipients=[current_user.email])
+        msg.body = '''Szanowny Pacjencie, Szanowna Pacjentko twoja wizyta została zarejestrowana na {}.
+'''.format(datetime_object)
+        mail.send(msg)
         return redirect("account")
 
 #---------------------------------------------------

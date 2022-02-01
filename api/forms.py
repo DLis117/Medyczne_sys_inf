@@ -9,7 +9,7 @@ class RegistrationForm(FlaskForm):
                        validators=[DataRequired(), Length(max = 25)])
     surname = StringField('Nazwisko',
                        validators=[DataRequired(), Length(max = 50)])
-    date_of_birth = DateField('Data urodzenia',
+    date_of_birth = DateField('Data urodzenia w formacie RRRR-MM-DD',
                        validators=[DataRequired()])
 
     adress = StringField('Adres',
