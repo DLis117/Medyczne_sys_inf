@@ -156,7 +156,7 @@ def trytoregister():
             return render_template('register.html', form=form)
         password_h = generate_password_hash(password)
         #utworzenie konta
-        Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,3,"jwt_token_default",1)
+        Pacjent = User(name,surname,date_of_birth,adress,pesel,email,phone_number,password_h,0,"jwt_token_default",1)
         db.session.add(Pacjent)
         db.session.commit()
         flash("Konto utworzone pomyślnie!")
@@ -528,14 +528,10 @@ def admin__chose():
         flash( "nie masz uprawnien administratora!")
         return redirect("admin_index")
     baza = []
-    unverified = []
     patients = []
     doctors = []
-    Unverified = User.query.filter(User.class_type == 3)  # bierzemy tylko niezweryfikowanych PACJENTOW!!!
-    for i in Unverified:
-        unverified.append(i)
 
-    Patients = User.query.filter(User.class_type == 0)  # bierzemy tylko lekarzy
+    Patients = User.query.filter(User.class_type == 0)  # bierzemy tylko pacjentow
     for i in Patients:
         patients.append(i.id)
 
@@ -543,7 +539,6 @@ def admin__chose():
     for i in Doctors:
         doctors.append(i.id)
 
-    baza.append(unverified)
     baza.append(patients)
     baza.append(doctors)
     return render_template(('admin_chose.html'), baza=baza)

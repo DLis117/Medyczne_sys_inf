@@ -32,7 +32,7 @@
     <h1>EDYTUJ LEKARZA</h1>
     <form action="/admin_edit_doctor" method="post">
         <select name="selected">
-            {% for record in baza[2]%}
+            {% for record in baza[1]%}
                 <option class="opcja" value="{{record}}">{{record}}</option>
             {%endfor%}
         <input type="submit" value="edytuj lekarza">
@@ -45,7 +45,7 @@
     <h1>EDYTUJ PACJENTA</h1>
     <form action="/admin_edit_patient" method="post">
         <select name="selected">
-            {% for record in baza[1]%}
+            {% for record in baza[0]%}
                 <option class="opcja" value="{{record}}">{{record}}</option>
             {%endfor%}
         <input type="submit" value="edytuj pacjenta">
@@ -53,26 +53,8 @@
         
     </form>
     </div>
-    <h1 class="verifyh1">ZWERYFIKUJ PACJENTOW</h1>
-    <div class="ramka4">
         
-        {% for record in baza[0]%}
-        
-        <div class="ramka4form">
-            <p>{{record.id}} {{record.name}} {{record.surname}} {{record.pesel}} {{record.email}} </p>
-            <div class=accept_or_deny>
-                <form action="/admin_verify_accept" method="post">
-                    <input type="hidden" value="{{record.id}}" name="id">
-                    <input class="accept" type="submit" value="&#10004;">
-                </form>
-                <form action="/admin_verify_deny" method="post">
-                    <input type="hidden" value="{{record.id}}" name="id">
-                    <input class="deny" type="submit" value="&#x2715;">
-                </form>
-            </div>
-        </div>
-        
-        {%endfor%}
+
         
         
         
